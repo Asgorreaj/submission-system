@@ -1,0 +1,505 @@
+{
+  "info": {
+    "name": "Assignment Submission System",
+    "description": "Auth (LoginId based), Class, Subject, Assignment, Submission (with file upload) endpoints.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://localhost:7281" },
+    { "key": "adminToken", "value": "" },
+    { "key": "teacherToken", "value": "" },
+    { "key": "studentToken", "value": "" },
+    { "key": "classId", "value": "" },
+    { "key": "subjectId", "value": "" },
+    { "key": "teacherId", "value": "" },
+    { "key": "studentId", "value": "" },
+    { "key": "studentLoginId", "value": "" },
+    { "key": "assignmentId", "value": "" },
+    { "key": "submissionId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login - Admin (seed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const data = pm.response.json();",
+                  "    pm.collectionVariables.set('adminToken', data.token);",
+                  "    console.log('Admin token saved');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loginId\": \"ADM-26-0001\",\n  \"password\": \"Admin@123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Create Class first (see Class folder), then Create Student (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const data = pm.response.json();",
+                  "    pm.collectionVariables.set('studentId', data.id);",
+                  "    pm.collectionVariables.set('studentLoginId', data.loginId);",
+                  "    console.log('Student created: ' + data.loginId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Karim Student\",\n  \"email\": \"student@school.com\",\n  \"password\": \"student123\",\n  \"role\": \"Student\",\n  \"classId\": \"{{classId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "Create Teacher (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const data = pm.response.json();",
+                  "    pm.collectionVariables.set('teacherId', data.id);",
+                  "    console.log('Teacher created: ' + data.loginId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Rahim Teacher\",\n  \"email\": \"teacher@school.com\",\n  \"password\": \"teacher123\",\n  \"role\": \"Teacher\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "Login - Teacher",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const data = pm.response.json();",
+                  "    pm.collectionVariables.set('teacherToken', data.token);",
+                  "    console.log('Teacher token saved');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loginId\": \"TCH-26-0001\",\n  \"password\": \"teacher123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Login - Student",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const data = pm.response.json();",
+                  "    pm.collectionVariables.set('studentToken', data.token);",
+                  "    console.log('Student token saved');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"loginId\": \"{{studentLoginId}}\",\n  \"password\": \"student123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] }
+          }
+        },
+        {
+          "name": "Change Password (any logged-in role)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{studentToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"student123\",\n  \"newPassword\": \"newpass123\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/auth/change-password", "host": ["{{baseUrl}}"], "path": ["api", "auth", "change-password"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Class",
+      "item": [
+        {
+          "name": "Create Class (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const data = pm.response.json();",
+                  "    pm.collectionVariables.set('classId', data.id);",
+                  "    console.log('Class id saved: ' + data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Class 10\",\n  \"section\": \"A\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/class", "host": ["{{baseUrl}}"], "path": ["api", "class"] }
+          }
+        },
+        {
+          "name": "Get All Classes",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/class", "host": ["{{baseUrl}}"], "path": ["api", "class"] }
+          }
+        },
+        {
+          "name": "Get Class By Id",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/class/{{classId}}", "host": ["{{baseUrl}}"], "path": ["api", "class", "{{classId}}"] }
+          }
+        },
+        {
+          "name": "Update Class (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Class 10\",\n  \"section\": \"B\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/class/{{classId}}", "host": ["{{baseUrl}}"], "path": ["api", "class", "{{classId}}"] }
+          }
+        },
+        {
+          "name": "Delete Class (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/class/{{classId}}", "host": ["{{baseUrl}}"], "path": ["api", "class", "{{classId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Subject",
+      "item": [
+        {
+          "name": "Create Subject (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const data = pm.response.json();",
+                  "    pm.collectionVariables.set('subjectId', data.id);",
+                  "    console.log('Subject id saved: ' + data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mathematics\",\n  \"classId\": \"{{classId}}\",\n  \"teacherId\": \"{{teacherId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/subject", "host": ["{{baseUrl}}"], "path": ["api", "subject"] }
+          }
+        },
+        {
+          "name": "Get All Subjects",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/subject", "host": ["{{baseUrl}}"], "path": ["api", "subject"] }
+          }
+        },
+        {
+          "name": "Get Subject By Id",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/subject/{{subjectId}}", "host": ["{{baseUrl}}"], "path": ["api", "subject", "{{subjectId}}"] }
+          }
+        },
+        {
+          "name": "Update Subject (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mathematics\",\n  \"classId\": \"{{classId}}\",\n  \"teacherId\": \"{{teacherId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/subject/{{subjectId}}", "host": ["{{baseUrl}}"], "path": ["api", "subject", "{{subjectId}}"] }
+          }
+        },
+        {
+          "name": "Delete Subject (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/subject/{{subjectId}}", "host": ["{{baseUrl}}"], "path": ["api", "subject", "{{subjectId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Assignment",
+      "item": [
+        {
+          "name": "Create Assignment (Teacher)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const data = pm.response.json();",
+                  "    pm.collectionVariables.set('assignmentId', data.id);",
+                  "    console.log('Assignment id saved: ' + data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Algebra Homework\",\n  \"description\": \"Solve chapter 3 problems\",\n  \"deadline\": \"2026-08-25T23:59:00Z\",\n  \"maxMarks\": 100,\n  \"classId\": \"{{classId}}\",\n  \"subjectId\": \"{{subjectId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/assignment", "host": ["{{baseUrl}}"], "path": ["api", "assignment"] }
+          }
+        },
+        {
+          "name": "Publish Assignment (Teacher)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{teacherToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/assignment/{{assignmentId}}/publish", "host": ["{{baseUrl}}"], "path": ["api", "assignment", "{{assignmentId}}", "publish"] }
+          }
+        },
+        {
+          "name": "Get All Assignments (role-based)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/assignment", "host": ["{{baseUrl}}"], "path": ["api", "assignment"] }
+          }
+        },
+        {
+          "name": "Get Assignment By Id",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/assignment/{{assignmentId}}", "host": ["{{baseUrl}}"], "path": ["api", "assignment", "{{assignmentId}}"] }
+          }
+        },
+        {
+          "name": "Update Assignment (Teacher)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Algebra Homework (Updated)\",\n  \"description\": \"Solve chapter 3 and 4 problems\",\n  \"deadline\": \"2026-08-26T23:59:00Z\",\n  \"maxMarks\": 100,\n  \"classId\": \"{{classId}}\",\n  \"subjectId\": \"{{subjectId}}\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/assignment/{{assignmentId}}", "host": ["{{baseUrl}}"], "path": ["api", "assignment", "{{assignmentId}}"] }
+          }
+        },
+        {
+          "name": "Delete Assignment (Teacher)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{teacherToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/assignment/{{assignmentId}}", "host": ["{{baseUrl}}"], "path": ["api", "assignment", "{{assignmentId}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Submission",
+      "item": [
+        {
+          "name": "Submit (Student) - text answer only",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const data = pm.response.json();",
+                  "    pm.collectionVariables.set('submissionId', data.id);",
+                  "    console.log('Submission id saved: ' + data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "AssignmentId", "value": "{{assignmentId}}", "type": "text" },
+                { "key": "Answer", "value": "2x + 3 = 7, so x = 2", "type": "text" }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/api/submission", "host": ["{{baseUrl}}"], "path": ["api", "submission"] }
+          }
+        },
+        {
+          "name": "Submit (Student) - with file",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "AssignmentId", "value": "{{assignmentId}}", "type": "text" },
+                { "key": "Answer", "value": "See attached file", "type": "text" },
+                { "key": "file", "type": "file", "src": "" }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/api/submission", "host": ["{{baseUrl}}"], "path": ["api", "submission"] },
+            "description": "Click the 'file' row's Select Files button to upload a PDF/DOC/XLS before sending."
+          }
+        },
+        {
+          "name": "Update Submission (Student)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{studentToken}}" }],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "AssignmentId", "value": "{{assignmentId}}", "type": "text" },
+                { "key": "Answer", "value": "2x + 3 = 7, so x = 2 (revised)", "type": "text" }
+              ]
+            },
+            "url": { "raw": "{{baseUrl}}/api/submission/{{submissionId}}", "host": ["{{baseUrl}}"], "path": ["api", "submission", "{{submissionId}}"] }
+          }
+        },
+        {
+          "name": "Grade Submission (Teacher)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{teacherToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"marksObtained\": 85,\n  \"feedback\": \"Good work, minor calculation error\"\n}"
+            },
+            "url": { "raw": "{{baseUrl}}/api/submission/{{submissionId}}/grade", "host": ["{{baseUrl}}"], "path": ["api", "submission", "{{submissionId}}", "grade"] }
+          }
+        },
+        {
+          "name": "Download Submission File",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{teacherToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/submission/{{submissionId}}/file", "host": ["{{baseUrl}}"], "path": ["api", "submission", "{{submissionId}}", "file"] }
+          }
+        },
+        {
+          "name": "Get All Submissions (role-based)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{teacherToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/submission", "host": ["{{baseUrl}}"], "path": ["api", "submission"] }
+          }
+        },
+        {
+          "name": "Get Submission By Id",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{teacherToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/submission/{{submissionId}}", "host": ["{{baseUrl}}"], "path": ["api", "submission", "{{submissionId}}"] }
+          }
+        }
+      ]
+    }
+  ]
+}
