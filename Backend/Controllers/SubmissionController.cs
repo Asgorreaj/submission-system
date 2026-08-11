@@ -9,13 +9,13 @@ using Backend.Models;
 namespace Backend.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/submissions")]
     [Authorize]
     public class SubmissionController : ControllerBase
     {
         private readonly AppDbContext _context;
         private static readonly string[] AllowedExtensions = { ".pdf", ".doc", ".docx", ".xls", ".xlsx" };
-        
+
         private const long MaxFileSize = 10 * 1024 * 1024; // 10 MB
 
         public SubmissionController(AppDbContext context)
@@ -34,17 +34,17 @@ namespace Backend.Controllers
             return User.FindFirstValue(ClaimTypes.Role)!;
         }
 
-       
+
         [HttpPost]
         [Authorize(Roles = "Student")]
         [Consumes("multipart/form-data")]
-        
+
         [RequestSizeLimit(MaxFileSize + 1_000_000)]
-       
+
         public async Task<ActionResult<SubmissionResponseDto>> CreateSubmission(
             [FromForm] CreateSubmissionDto dto,
             IFormFile? file)
-      
+
         {
             var studentId = GetLoggedInUserId();
 
@@ -59,15 +59,15 @@ namespace Backend.Controllers
                 return BadRequest(new { message = "Cannot submit to an unpublished assignment" });
             }
 
-            
+
             var student = await _context.Users.FirstOrDefaultAsync(u => u.Id == studentId);
             if (assignment.ClassId != student!.ClassId)
             {
                 return Forbid();
-               
+
             }
 
-           
+
             if (string.IsNullOrWhiteSpace(dto.Answer) && file == null)
             {
                 return BadRequest(new { message = "Provide either an answer text or a file" });
@@ -80,7 +80,7 @@ namespace Backend.Controllers
                 return BadRequest(new { message = "You have already submitted this assignment. Use update instead." });
             }
 
-           
+
             byte[]? fileData = null;
             string? fileName = null;
             string? fileContentType = null;
@@ -88,7 +88,7 @@ namespace Backend.Controllers
             if (file != null)
             {
                 var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-               
+
 
                 if (!AllowedExtensions.Contains(extension))
                 {
@@ -101,11 +101,11 @@ namespace Backend.Controllers
                 }
 
                 using var memoryStream = new MemoryStream();
-               
+
                 await file.CopyToAsync(memoryStream);
-               
+
                 fileData = memoryStream.ToArray();
-              
+
 
                 fileName = file.FileName;
                 fileContentType = file.ContentType;
@@ -151,7 +151,7 @@ namespace Backend.Controllers
             return CreatedAtAction(nameof(GetSubmissionById), new { id = newSubmission.Id }, response);
         }
 
-        
+
         [HttpGet("{id}/file")]
         public async Task<IActionResult> DownloadFile(Guid id)
         {
@@ -164,7 +164,7 @@ namespace Backend.Controllers
                 return NotFound(new { message = "File not found" });
             }
 
-           
+
             var role = GetLoggedInUserRole();
             var userId = GetLoggedInUserId();
 
@@ -178,7 +178,7 @@ namespace Backend.Controllers
             }
 
             return File(submission.FileData, submission.FileContentType ?? "application/octet-stream", submission.FileName);
-            
+
         }
 
         // ==================== UPDATE ====================
@@ -262,7 +262,7 @@ namespace Backend.Controllers
         public async Task<ActionResult<SubmissionResponseDto>> GradeSubmission(Guid id, [FromBody] GradeSubmissionDto dto)
         {
             var submission = await _context.Submissions
-                .Include(s => s.Assignment)
+                .Include(s => s.Assignment)!.ThenInclude(a => a!.Teacher)
                 .Include(s => s.Student)
                 .FirstOrDefaultAsync(s => s.Id == id);
 
@@ -301,7 +301,8 @@ namespace Backend.Controllers
                 Feedback = submission.Feedback,
                 Status = submission.Status,
                 FileName = submission.FileName,
-                HasFile = submission.FileData != null
+                HasFile = submission.FileData != null,
+                GradedByTeacherName = submission.Assignment.Teacher?.Fullname
             });
         }
 
@@ -312,7 +313,7 @@ namespace Backend.Controllers
             var userId = GetLoggedInUserId();
 
             IQueryable<Submission> query = _context.Submissions
-                .Include(s => s.Assignment)
+                .Include(s => s.Assignment)!.ThenInclude(a => a!.Teacher)
                 .Include(s => s.Student);
 
             if (role == "Student")
@@ -338,7 +339,8 @@ namespace Backend.Controllers
                     Feedback = s.Feedback,
                     Status = s.Status,
                     FileName = s.FileName,
-                    HasFile = s.FileData != null
+                    HasFile = s.FileData != null,
+                    GradedByTeacherName = s.Status == "Graded" ? s.Assignment!.Teacher!.Fullname : null
                 })
                 .ToListAsync();
 
@@ -349,7 +351,7 @@ namespace Backend.Controllers
         public async Task<ActionResult<SubmissionResponseDto>> GetSubmissionById(Guid id)
         {
             var submission = await _context.Submissions
-                .Include(s => s.Assignment)
+                .Include(s => s.Assignment)!.ThenInclude(a => a!.Teacher)
                 .Include(s => s.Student)
                 .FirstOrDefaultAsync(s => s.Id == id);
 
@@ -383,7 +385,8 @@ namespace Backend.Controllers
                 Feedback = submission.Feedback,
                 Status = submission.Status,
                 FileName = submission.FileName,
-                HasFile = submission.FileData != null
+                HasFile = submission.FileData != null,
+                GradedByTeacherName = submission.Status == "Graded" ? submission.Assignment.Teacher?.Fullname : null
             });
         }
     }

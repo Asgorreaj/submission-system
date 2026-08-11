@@ -10,7 +10,7 @@ namespace Backend.Controllers
 {
 
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/subjects")]
     [Authorize]
 
     public class SubjectController : ControllerBase

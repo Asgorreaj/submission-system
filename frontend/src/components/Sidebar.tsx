@@ -11,6 +11,7 @@ const navByRole: Record<Role, { href: string; label: string }[]> = {
     { href: "/dashboard/admin/users", label: "Users" },
     { href: "/dashboard/admin/classes", label: "Classes" },
     { href: "/dashboard/admin/subjects", label: "Subjects" },
+    { href: "/dashboard/admin/submissions", label: "Submissions" },
   ],
   Teacher: [
     { href: "/dashboard/teacher", label: "Overview" },

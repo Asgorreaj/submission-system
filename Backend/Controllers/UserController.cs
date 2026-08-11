@@ -7,7 +7,7 @@ using Backend.DTOs;
 namespace Backend.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/users")]
     [Authorize(Roles = "Admin")]
     public class UserController : ControllerBase
     {

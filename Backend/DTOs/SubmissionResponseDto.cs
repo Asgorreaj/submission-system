@@ -11,10 +11,11 @@
         public DateTime SubmittedAt { get; set; }
         public int? MarksObtained { get; set; }
         public string? Feedback { get; set; }
-        public string Status { get; set; } = string.Empty;       
+        public string Status { get; set; } = string.Empty;
         public string? FileName { get; set; }
         public bool HasFile { get; set; }
-        
-        
+        public string? GradedByTeacherName { get; set; }
+
+
     }
 }

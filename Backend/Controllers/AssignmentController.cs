@@ -9,7 +9,7 @@ using Backend.Models;
 namespace Backend.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/assignments")]
     [Authorize]
     public class AssignmentController : ControllerBase
     {
@@ -110,10 +110,10 @@ namespace Backend.Controllers
             }
             else if (role == "Student")
             {
-                
+
                 var student = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
                 query = query.Where(a => a.Status == "Published" && a.ClassId == student!.ClassId);
-                
+
             }
 
             var assignments = await query
@@ -156,7 +156,7 @@ namespace Backend.Controllers
 
             if (role == "Student")
             {
-                
+
                 var student = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
                 if (assignment.Status != "Published" || assignment.ClassId != student!.ClassId)
                 {

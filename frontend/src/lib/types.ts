@@ -76,6 +76,7 @@ export interface Submission {
   status: "Submitted" | "Late" | "Graded";
   fileName: string | null;
   hasFile: boolean;
+  gradedByTeacherName: string | null;
 }
 
 export interface LoginPayload {

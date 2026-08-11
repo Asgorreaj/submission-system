@@ -11,14 +11,14 @@ using Microsoft.AspNetCore.Authorization;
 namespace Backend.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/classes")]
 
     [Authorize]
 
     public class ClassController : ControllerBase
     {
         private readonly AppDbContext _context;
-        
+
         public ClassController(AppDbContext context)
         {
             _context = context;
@@ -96,7 +96,7 @@ namespace Backend.Controllers
             }
             classEntity.Name = dto.Name;
             classEntity.Section = dto.Section;
-            await _context.SaveChangesAsync();            
+            await _context.SaveChangesAsync();
             return Ok(new ClassResponseDto
             {
                 Id = classEntity.Id,
