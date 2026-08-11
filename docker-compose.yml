@@ -1,0 +1,48 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: submission_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: assignment_system
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: PPggsql
+    ports:
+      - "5433:5432"   # Local machine er 5432 already ache bole, 5433 e map korলাম
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: submission_backend
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=assignment_system;Username=postgres;Password=PPggsql"
+      JwtSettings__SecretKey: "ThisIsMySuperSecretKeyForJWTTokenGeneration12345"
+      JwtSettings__Issuer: "AssignmentSystemAPI"
+      JwtSettings__Audience: "AssignmentSystemClient"
+      JwtSettings__ExpiryMinutes: "60"
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: "http://localhost:8080/api"
+    container_name: submission_frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+
+volumes:
+  postgres_data:
